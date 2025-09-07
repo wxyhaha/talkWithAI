@@ -1,0 +1,14 @@
+body{
+  margin:0;
+}
+
+#app {
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  background-color:#292a2d;
+}
+
+.t-chat--normal .t-chat__detail{
+  max-width: calc(100% - var(--td-comp-size-xl))!important;
+}
