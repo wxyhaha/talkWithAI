@@ -8,7 +8,7 @@
       />
     </div>
     <div class="inputWrapper">
-      <ChatInput :loading="loading" @sendMsg="handleSend"/>
+      <ChatInput :loading="loading" @sendMsg="handleSend" ref="ChatInputRef"/>
     </div>
   </div>
 </template>
@@ -27,6 +27,8 @@ const textLoading=ref(false)
 const currentChatMessages = computed(() => {
   return chats.value[curChat.value]?.messages || []
 })
+const ChatInputRef=ref()
+const modelName=computed(()=>ChatInputRef.value?.isDeepThink ? 'deepseek-reasoner' : 'deepseek-chat')
 
 watch(currentChatMessages, (newVal) => {
   DialogBoxRef.value.backBottom()
@@ -47,12 +49,13 @@ const handleSend=async (value)=>{
 
   try {
     textLoading.value=true
-    const response = await queryDeepSeekResponse(chat.messages)
+    const response = await queryDeepSeekResponse(chat.messages,modelName.value)
     textLoading.value=false
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
     let aiMessage = '';
+    let reasonContent=''
 
     let aiMessageIndex = chat.messages.length
     const aiMessageObj = {
@@ -75,9 +78,14 @@ const handleSend=async (value)=>{
         if (line.startsWith('data: ') && line !== 'data: [DONE]') {
           const data = JSON.parse(line.slice(6));
           const content = data.choices[0].delta.content;
+          const reason=data.choices[0].delta?.reasoning_content;
           if (content) {
             aiMessage += content;
             chat.messages[aiMessageIndex].content = aiMessage;
+          }
+          if (reason) {
+            reasonContent += reason;
+            chat.messages[aiMessageIndex]['reasoning'] = reasonContent;
           }
         }
       }

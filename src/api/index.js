@@ -1,6 +1,6 @@
 const API_URL = 'https://api.deepseek.com/v1/chat/completions'
 
-export const queryDeepSeekResponse = async (messages) => {
+export const queryDeepSeekResponse = async (messages,modelName) => {
     const API_KEY = localStorage.getItem('apiKey')
     const response = await fetch(API_URL, {
         method: 'POST',
@@ -9,7 +9,7 @@ export const queryDeepSeekResponse = async (messages) => {
             'Authorization': `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
-            model: 'deepseek-chat',
+            model: modelName,
             messages: messages,
             stream: true,
             temperature: 0.7

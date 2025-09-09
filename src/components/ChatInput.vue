@@ -16,11 +16,19 @@
       <!-- 任意配置顺序-->
       <!-- <component :is="renderPresets([{ name: 'uploadAttachment' }, { name: 'uploadImage' }])" /> -->
     </template>
+    <template #prefix>
+      <t-button class="check-box" :class="{ 'is-active': isDeepThink }" variant="text" @click="isDeepThink=!isDeepThink">
+        <SystemSumIcon />
+        <span>深度思考</span>
+      </t-button>
+    </template>
   </t-chat-sender>
 </template>
 
 <script setup>
 import {ref} from "vue";
+import { SystemSumIcon } from 'tdesign-icons-vue-next';
+
 const props=defineProps({
   loading:Boolean
 })
@@ -28,6 +36,7 @@ const props=defineProps({
 const emit=defineEmits(['sendMsg'])
 
 const query = ref('');
+const isDeepThink=ref(false)
 
 const inputEnter = function () {
   if (props.loading) {
@@ -40,46 +49,31 @@ const inputEnter = function () {
 const onStop = function () {
 
 };
+
+defineExpose({isDeepThink})
 </script>
 
 <style lang="scss" scoped>
-.model-select {
+.check-box {
+  width: 112px;
+  height: 32px;
+  border-radius: 32px;
+  border: 0;
+  background: #393939;
+  color: white;
   display: flex;
+  justify-content: center;
   align-items: center;
-  .t-select {
-    width: 112px;
-    height: var(--td-comp-size-m);
-    margin-right: var(--td-comp-margin-s);
-    .t-input {
-      border-radius: 32px;
-      padding: 0 15px;
-    }
-    .t-input.t-is-focused {
-      box-shadow: none;
-    }
+  cursor: pointer;
+  padding: 0 5px;
+
+  >span{
+    margin-left: 5px;
   }
-  .check-box {
-    width: 112px;
-    height: var(--td-comp-size-m);
-    border-radius: 32px;
-    border: 0;
-    background: var(--td-bg-color-component);
-    color: var(--td-text-color-primary);
-    box-sizing: border-box;
-    flex: 0 0 auto;
-    .t-button__text {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      span {
-        margin-left: var(--td-comp-margin-xs);
-      }
-    }
-  }
-  .check-box.is-active {
-    border: 1px solid var(--td-brand-color-focus);
-    background: var(--td-brand-color-light);
-    color: var(--td-text-color-brand);
-  }
+}
+.is-active {
+  border: 1px solid #173463;
+  background: #1b2f51;
+  color: #4582e6;
 }
 </style>
