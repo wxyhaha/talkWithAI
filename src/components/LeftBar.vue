@@ -10,7 +10,7 @@
       <div class="addButton">
         <el-button color="#43454a" round :icon="CirclePlus" @click="emit('addNewChat')">开启新对话</el-button>
       </div>
-      <div :class="{conversationItem:true,activeItem:index===selectItemIndex}" v-for="(item,index) in conversationList" :key="item.id" @click="handleSelectItem(index)">
+      <div :class="{conversationItem:true,activeItem:index===selectItemIndex}" v-for="(item,index) in chatListStore.chatList" :key="item.id" @click="handleSelectItem(index)">
         <span>{{ item.title }}</span>
       </div>
     </div>
@@ -31,14 +31,13 @@
 
 <script setup>
 import {Setting,CirclePlus} from '@element-plus/icons-vue'
-import {computed, ref} from "vue";
+import {ref} from "vue";
+import { useChatListStore } from '../store'
+const chatListStore = useChatListStore()
 
 const dialogVisible = ref(false)
 const apiKey = ref()
-const conversationList = computed(() =>
-    localStorage.getItem('ai-chat-sessions')
-        ? JSON.parse(localStorage.getItem('ai-chat-sessions'))
-        : [])
+
 const selectItemIndex=ref(null)
 
 const emit = defineEmits(['changeCurChat','addNewChat'])

@@ -18,9 +18,11 @@ import ChatInput from './ChatInput.vue'
 import DialogBox from './DialogBox.vue'
 import {computed, ref, watch} from "vue";
 import {queryDeepSeekResponse} from "../api";
+import { useChatListStore } from '../store'
+const chatListStore = useChatListStore()
 
 const DialogBoxRef=ref()
-const chats=ref(localStorage.getItem('ai-chat-sessions') ? JSON.parse(localStorage.getItem('ai-chat-sessions')) : [])
+const chats=ref(chatListStore.chatList)
 const curChatIdx = ref(null)
 const loading=ref(false)
 const textLoading=ref(false)
@@ -103,18 +105,17 @@ const handleSend=async (value)=>{
 }
 
 const handleAddNewChat=()=>{
-  chats.value.push({
+  chatListStore.chatList.push({
     id: Date.now(),
     title: `新对话 ${chats.value.length + 1}`,
     messages: [],
     createdAt: Date.now()
   })
   curChatIdx.value = chats.value.length - 1
-  saveChats()
 }
 
 const saveChats = () => {
-  localStorage.setItem('ai-chat-sessions', JSON.stringify(chats.value))
+  chatListStore.setChatList(chats.value)
 }
 
 defineExpose({handleSelectChat,handleAddNewChat})
