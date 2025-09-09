@@ -20,12 +20,12 @@ import {computed, ref, watch} from "vue";
 import {queryDeepSeekResponse} from "../api";
 
 const DialogBoxRef=ref()
-const chats=ref([])
-const curChat = ref(0)
+const chats=ref(localStorage.getItem('ai-chat-sessions') ? JSON.parse(localStorage.getItem('ai-chat-sessions')) : [])
+const curChatIdx = ref(null)
 const loading=ref(false)
 const textLoading=ref(false)
 const currentChatMessages = computed(() => {
-  return chats.value[curChat.value]?.messages || []
+  return chats.value[curChatIdx.value]?.messages || []
 })
 const ChatInputRef=ref()
 const modelName=computed(()=>ChatInputRef.value?.isDeepThink ? 'deepseek-reasoner' : 'deepseek-chat')
@@ -34,12 +34,16 @@ watch(currentChatMessages, (newVal) => {
   DialogBoxRef.value.backBottom()
 }, { deep: true })
 
+const handleSelectChat=(index)=>{
+  curChatIdx.value=index
+}
+
 const handleSend=async (value)=>{
   loading.value=true
   if(chats.value.length===0){
     handleAddNewChat()
   }
-  const chat = chats.value[curChat.value]
+  const chat = chats.value[curChatIdx.value]
   chat.messages.push({
     role: 'user',
     content: value,
@@ -105,7 +109,7 @@ const handleAddNewChat=()=>{
     messages: [],
     createdAt: Date.now()
   })
-  curChat.value = chats.value.length - 1
+  curChatIdx.value = chats.value.length - 1
   saveChats()
 }
 
@@ -113,6 +117,7 @@ const saveChats = () => {
   localStorage.setItem('ai-chat-sessions', JSON.stringify(chats.value))
 }
 
+defineExpose({handleSelectChat,handleAddNewChat})
 </script>
 
 <style lang="scss" scoped>

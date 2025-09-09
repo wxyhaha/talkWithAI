@@ -1,13 +1,16 @@
 <template>
   <div class="pageWrapper">
-    <LeftBar/>
-    <ChatContainer/>
+    <LeftBar @changeCurChat="ChatContainerRef?.handleSelectChat" @addNewChat="ChatContainerRef?.handleAddNewChat"/>
+    <ChatContainer ref="ChatContainerRef"/>
   </div>
 </template>
 
 <script setup>
 import LeftBar from './components/LeftBar.vue'
 import ChatContainer from './components/ChatContainer.vue'
+import {ref} from "vue";
+
+const ChatContainerRef=ref()
 </script>
 
 <style scoped lang="scss">
