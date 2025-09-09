@@ -33,6 +33,8 @@
 import {Setting,CirclePlus} from '@element-plus/icons-vue'
 import {ref} from "vue";
 import { useChatListStore } from '../store'
+import {encrypt} from "../utils";
+import {loadConversation} from "../api/githubRequest";
 const chatListStore = useChatListStore()
 
 const dialogVisible = ref(false)
@@ -42,7 +44,8 @@ const selectItemIndex=ref(null)
 
 const emit = defineEmits(['changeCurChat','addNewChat'])
 
-const handleSelectItem=(index)=>{
+const handleSelectItem=async (index)=>{
+  console.log('888',await loadConversation(chatListStore.chatList[index].id))
   selectItemIndex.value= index
   emit('changeCurChat',index)
 }
