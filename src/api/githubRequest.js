@@ -1,4 +1,4 @@
-import {githubInfo} from "../../.vscode/config";
+import {githubInfo} from "../../config";
 import {decrypt, encrypt} from "../utils";
 
 const OWNER = githubInfo.OWNER;

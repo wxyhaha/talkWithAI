@@ -1,6 +1,7 @@
 const API_URL = 'https://api.deepseek.com/v1/chat/completions'
 
 export const queryDeepSeekResponse = async (messages,modelName) => {
+    const messageArr = messages.map(item=>{return {role:item.role,content:item.content}})
     const API_KEY = localStorage.getItem('apiKey')
     const response = await fetch(API_URL, {
         method: 'POST',
@@ -10,9 +11,8 @@ export const queryDeepSeekResponse = async (messages,modelName) => {
         },
         body: JSON.stringify({
             model: modelName,
-            messages: messages,
+            messages: messageArr,
             stream: true,
-            temperature: 0.7
         })
     });
 
