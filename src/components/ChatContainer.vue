@@ -21,23 +21,37 @@ import {computed, onUnmounted, ref, watch} from "vue";
 import {queryDeepSeekResponse} from "../api";
 import { useChatListStore } from '../store'
 import {generateUUID} from "../utils/index.js";
+import {loadConversation} from "../api/githubRequest";
 const chatListStore = useChatListStore()
 
 const DialogBoxRef=ref()
 const loading=ref(false)
 const textLoading=ref(false)
-const currentChatMessages = computed(() => {
-  return chatListStore?.chatList?.[chatListStore.curChatIndex]?.messages || []
-})
 const ChatInputRef=ref()
 const modelName=computed(()=>ChatInputRef.value?.isDeepThink ? 'deepseek-reasoner' : 'deepseek-chat')
+const currentChatMessages = ref([])
 
-watch(() => chatListStore.curChatIndex,(newVal,oldVal)=>{
-  console.log('newVal',newVal)
-  console.log('oldVal',oldVal)
-  console.log('old',chatListStore.chatList[oldVal])
-  console.log()
-})
+const getChatDataFromRemote=async (index)=>{
+  console.log('index',index)
+  if(index!==undefined){
+    const result=await loadConversation(chatListStore.chatList[index].id)
+    if(result){
+      chatListStore.chatList[index].messages=result
+      saveLocal()
+    }
+    return result || []
+  }
+}
+
+watch(() => chatListStore.curChatIndex, async (newIndex) => {
+  console.log('123',chatListStore?.chatList?.[newIndex]?.messages)
+  if (chatListStore?.chatList?.[newIndex]?.messages) {
+    currentChatMessages.value = chatListStore.chatList[newIndex].messages
+  } else {
+    currentChatMessages.value = await getChatDataFromRemote(newIndex)
+  }
+}, { immediate: true })
+
 
 watch(currentChatMessages, (newVal) => {
   DialogBoxRef.value.backBottom()

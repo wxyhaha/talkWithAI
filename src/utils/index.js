@@ -26,7 +26,6 @@ export async function mergeRemoteAndLocalData() {
     const remoteData = await getFile("index.json");
     const remoteDataArr = remoteData ? JSON.parse(remoteData) : [];
     const localData=localStorage.getItem("ai-chat-sessions") ? JSON.parse(localStorage.getItem("ai-chat-sessions")) : [];
-    console.log("mergeArraysById(remoteDataArr,localData)",mergeArraysById(remoteDataArr,localData))
     return mergeArraysById(remoteDataArr,localData)
 }
 
