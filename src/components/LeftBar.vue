@@ -2,15 +2,30 @@
   <div class="barWrapper">
     <div class="titleWrapper">
       <span>Talk with AI</span>
-      <el-icon @click="dialogVisible=true">
-        <Setting/>
-      </el-icon>
+      <div class="iconWrapper">
+        <el-icon style="cursor: pointer" @click="handleSaveRemote"><UploadFilled /></el-icon>
+        <el-dropdown>
+          <el-icon style="font-size: 24px;margin-left: 15px">
+            <Setting/>
+          </el-icon>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="dialogVisible=true">配置API key</el-dropdown-item>
+              <el-dropdown-item>配置数据保存</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
     </div>
     <div class="conversationListWrapper">
       <div class="addButton">
         <el-button color="#43454a" round :icon="CirclePlus" @click="emit('addNewChat')">开启新对话</el-button>
       </div>
-      <div :class="{conversationItem:true,activeItem:index===selectItemIndex}" v-for="(item,index) in chatListStore.chatList" :key="item.id" @click="handleSelectItem(index)">
+      <div :class="{conversationItem:true,activeItem:index===chatListStore.curChatIndex}"
+           v-for="(item,index) in chatListStore.chatList"
+           :key="item.id"
+           @click="chatListStore.setCurChatIndex(index)"
+      >
         <span>{{ item.title }}</span>
       </div>
     </div>
@@ -30,33 +45,41 @@
 </template>
 
 <script setup>
-import {Setting,CirclePlus} from '@element-plus/icons-vue'
-import {ref} from "vue";
+import {Setting,CirclePlus,UploadFilled} from '@element-plus/icons-vue'
+import {onUnmounted, ref} from "vue";
 import { useChatListStore } from '../store'
-import {encrypt} from "../utils";
-import {loadConversation} from "../api/githubRequest";
+import {loadConversation, saveConversation} from "../api/githubRequest";
 const chatListStore = useChatListStore()
 
 const dialogVisible = ref(false)
 const apiKey = ref()
 
-const selectItemIndex=ref(null)
+const emit = defineEmits(['addNewChat'])
 
-const emit = defineEmits(['changeCurChat','addNewChat'])
-
-const handleSelectItem=async (index)=>{
-  console.log('888',await loadConversation(chatListStore.chatList[index].id))
-  selectItemIndex.value= index
-  emit('changeCurChat',index)
+const handleSaveRemote=async ()=>{
+  for (let i=0;i<chatListStore.chatList.length;i++){
+    if(chatListStore.chatList[i].isChange){
+      await saveConversation(chatListStore.chatList[i])
+      chatListStore.$patch(state => {
+        state.chatList[i].isChange = false
+      })
+    }
+  }
 }
 
 const handleSaveApiKey = () => {
   localStorage.setItem('apiKey', apiKey.value)
   dialogVisible.value = false
 }
+
 </script>
 
 <style lang="scss" scoped>
+.iconWrapper{
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+}
 .addButton{
   height: 50px;
   width: 100%;

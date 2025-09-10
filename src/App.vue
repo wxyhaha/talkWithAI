@@ -1,16 +1,23 @@
 <template>
   <div class="pageWrapper">
-    <LeftBar @changeCurChat="ChatContainerRef?.handleSelectChat" @addNewChat="ChatContainerRef?.handleAddNewChat"/>
-    <ChatContainer ref="ChatContainerRef"/>
+    <LeftBar @addNewChat="ChatContainerRef?.handleAddNewChat"/>
+    <ChatContainer ref="ChatContainerRef" />
   </div>
 </template>
 
 <script setup>
 import LeftBar from './components/LeftBar.vue'
 import ChatContainer from './components/ChatContainer.vue'
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
+import {mergeRemoteAndLocalData} from "./utils/index.js";
+import {useChatListStore} from "./store/index.js";
 
+const ChatListStore=useChatListStore()
 const ChatContainerRef=ref()
+
+onMounted(()=>{
+  ChatListStore.initChatList()
+})
 </script>
 
 <style scoped lang="scss">

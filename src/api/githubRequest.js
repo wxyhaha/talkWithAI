@@ -1,31 +1,32 @@
 import {githubInfo} from "../../config";
-import {decrypt, encrypt} from "../utils";
+import {decodeBase64ToUnicode, decrypt, encrypt, uint8ArrayToBase64} from "../utils";
 
 const OWNER = githubInfo.OWNER;
 const REPO = githubInfo.REPO;
 const BRANCH = githubInfo.BRANCH;
 const TOKEN = githubInfo.TOKEN;
+const BASE_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents`;
 
-async function getFile(path) {
-    const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`, {
+export async function getFile(path) {
+    const res = await fetch(`${BASE_URL}/${path}?ref=${BRANCH}`, {
         headers: { Authorization: `token ${TOKEN}` }
     });
     const data = await res.json();
     if (data.content) {
-        const content = atob(data.content); // base64解码
+        const content = decodeBase64ToUnicode(data.content); // base64解码
         return content;
     }
     return null;
 }
 
-async function updateFile(path, content, sha) {
+export async function updateFile(path, content, sha) {
     const body = {
         message: `Update ${path}`,
-        content: btoa(content),
+        content: uint8ArrayToBase64(new TextEncoder().encode(content)),
         sha,
         branch: BRANCH
     };
-    const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+    const res = await fetch(`${BASE_URL}/${path}`, {
         method: "PUT",
         headers: {
             Authorization: `token ${TOKEN}`,
@@ -37,14 +38,13 @@ async function updateFile(path, content, sha) {
 }
 
 export async function saveConversation(conversation) {
-    // conversation = { id, title, messages, updatedAt }
     const filePath = `conversations/${conversation.id}.json`;
 
     // 先尝试获取当前文件的 sha（如果已存在，用于更新）
     const existing = await getFile(filePath);
     let sha = null;
     if (existing) {
-        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}?ref=${BRANCH}`, {
+        const res = await fetch(`${BASE_URL}/${filePath}?ref=${BRANCH}`, {
             headers: { Authorization: `token ${TOKEN}` }
         });
         const data = await res.json();
@@ -61,13 +61,23 @@ export async function saveConversation(conversation) {
     const indexContent = await getFile("index.json");
     let index = indexContent ? JSON.parse(indexContent) : [];
     const idx = index.findIndex(c => c.id === conversation.id);
-    if (idx >= 0) index[idx] = { id: conversation.id, title: conversation.title, updatedAt: conversation.updatedAt };
-    else index.push({ id: conversation.id, title: conversation.title, updatedAt: conversation.updatedAt });
+
+    const conversationData = {
+        id: conversation.id,
+        title: conversation.title,
+        createdAt: conversation.createdAt,
+        updatedAt: conversation.updatedAt || new Date()
+    }
+    if (idx >= 0) {
+        index[idx] = conversationData
+    } else {
+        index.push(conversationData)
+    }
 
     // 上传 index.json
     let indexSha = null;
     if (indexContent) {
-        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/index.json?ref=${BRANCH}`, {
+        const res = await fetch(`${BASE_URL}/index.json?ref=${BRANCH}`, {
             headers: { Authorization: `token ${TOKEN}` }
         });
         const data = await res.json();

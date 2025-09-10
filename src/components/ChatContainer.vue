@@ -5,6 +5,7 @@
           :currentChatMessages="currentChatMessages"
           ref="DialogBoxRef"
           :textLoading="textLoading"
+          :isStreamLoad="loading"
       />
     </div>
     <div class="inputWrapper">
@@ -16,47 +17,48 @@
 <script setup>
 import ChatInput from './ChatInput.vue'
 import DialogBox from './DialogBox.vue'
-import {computed, ref, watch} from "vue";
+import {computed, onUnmounted, ref, watch} from "vue";
 import {queryDeepSeekResponse} from "../api";
 import { useChatListStore } from '../store'
+import {generateUUID} from "../utils/index.js";
 const chatListStore = useChatListStore()
 
 const DialogBoxRef=ref()
-const chats=ref(chatListStore.chatList)
-const curChatIdx = ref(null)
 const loading=ref(false)
 const textLoading=ref(false)
 const currentChatMessages = computed(() => {
-  return chats.value[curChatIdx.value]?.messages || []
+  return chatListStore?.chatList?.[chatListStore.curChatIndex]?.messages || []
 })
 const ChatInputRef=ref()
 const modelName=computed(()=>ChatInputRef.value?.isDeepThink ? 'deepseek-reasoner' : 'deepseek-chat')
+
+watch(() => chatListStore.curChatIndex,(newVal,oldVal)=>{
+  console.log('newVal',newVal)
+  console.log('oldVal',oldVal)
+  console.log('old',chatListStore.chatList[oldVal])
+  console.log()
+})
 
 watch(currentChatMessages, (newVal) => {
   DialogBoxRef.value.backBottom()
 }, { deep: true })
 
-const handleSelectChat=(index)=>{
-  curChatIdx.value=index
-}
-
 const handleSend=async (value)=>{
   loading.value=true
-  if(chats.value.length===0){
+  if(chatListStore.chatList.length===0){
     handleAddNewChat()
   }
-  const chat = chats.value[curChatIdx.value]
+  const chat = chatListStore.chatList[chatListStore.curChatIndex]
+  chat['isChange']=true
   chat.messages.push({
     role: 'user',
     content: value,
-    avatar: 'https://tdesign.gtimg.com/site/avatar.jpg',
     timestamp: Date.now()
   })
 
   try {
     textLoading.value=true
     const response = await queryDeepSeekResponse(chat.messages,modelName.value)
-    textLoading.value=false
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
@@ -67,15 +69,20 @@ const handleSend=async (value)=>{
     const aiMessageObj = {
       role: 'assistant',
       content: '',
-      avatar: 'https://tdesign.gtimg.com/site/chat-avatar.png',
-      displayedContent: '',
       timestamp: Date.now()
     };
     chat.messages.push(aiMessageObj);
 
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
+      textLoading.value=false
+      if (done) {
+        loading.value = false
+        chatListStore.chatList[chatListStore.curChatIndex]['updatedAt']=Date.now()
+        console.log('chatListStore.chatList',chatListStore.chatList)
+        saveLocal()
+        break
+      }
 
       const chunk = decoder.decode(value);
       const lines = chunk.split('\n');
@@ -99,26 +106,24 @@ const handleSend=async (value)=>{
   } catch (error) {
     console.error('API Error:', error)
   } finally {
-    saveChats()
-    loading.value = false
+    textLoading.value=false
   }
 }
 
 const handleAddNewChat=()=>{
   chatListStore.chatList.push({
-    id: Date.now(),
-    title: `新对话 ${chats.value.length + 1}`,
+    id: generateUUID(),
+    title: `新对话 ${chatListStore.chatList.length + 1}`,
     messages: [],
     createdAt: Date.now()
   })
-  curChatIdx.value = chats.value.length - 1
+  chatListStore.curChatIndex = chatListStore.chatList.length - 1
 }
 
-const saveChats = () => {
-  chatListStore.setChatList(chats.value)
+const saveLocal=()=>{
+  localStorage.setItem('ai-chat-sessions', JSON.stringify(chatListStore.chatList))
 }
-
-defineExpose({handleSelectChat,handleAddNewChat})
+defineExpose({handleAddNewChat})
 </script>
 
 <style lang="scss" scoped>
