@@ -32,7 +32,6 @@ const modelName=computed(()=>ChatInputRef.value?.isDeepThink ? 'deepseek-reasone
 const currentChatMessages = ref([])
 
 const getChatDataFromRemote=async (index)=>{
-  console.log('index',index)
   if(index!==undefined){
     const result=await loadConversation(chatListStore.chatList[index].id)
     if(result){
@@ -44,7 +43,6 @@ const getChatDataFromRemote=async (index)=>{
 }
 
 watch(() => chatListStore.curChatIndex, async (newIndex) => {
-  console.log('123',chatListStore?.chatList?.[newIndex]?.messages)
   if (chatListStore?.chatList?.[newIndex]?.messages) {
     currentChatMessages.value = chatListStore.chatList[newIndex].messages
   } else {
@@ -93,7 +91,6 @@ const handleSend=async (value)=>{
       if (done) {
         loading.value = false
         chatListStore.chatList[chatListStore.curChatIndex]['updatedAt']=Date.now()
-        console.log('chatListStore.chatList',chatListStore.chatList)
         saveLocal()
         break
       }
