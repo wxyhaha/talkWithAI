@@ -1,0 +1,15 @@
+# 忽略依赖目录
+node_modules/
+
+# 打包输出目录
+dist/
+build/
+out/
+
+# 临时文件
+.temp/
+.cache/
+
+# 其他可能的构建产物
+coverage/
+*.log

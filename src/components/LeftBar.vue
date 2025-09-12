@@ -58,7 +58,7 @@ const emit = defineEmits(['addNewChat'])
 
 const handleSaveRemote=async ()=>{
   for (let i=0;i<chatListStore.chatList.length;i++){
-    if(chatListStore.chatList[i].isChange){
+    if(chatListStore.chatList[i]?.isChange){
       await saveConversation(chatListStore.chatList[i])
       chatListStore.$patch(state => {
         state.chatList[i].isChange = false
