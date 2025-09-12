@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import {saveConversation} from "../api/githubRequest";
 import {mergeRemoteAndLocalData} from "../utils/index.js";
 export const useChatListStore = defineStore('chatList', {
-    state: async () => ({
+    state: () => ({
         chatList: [],
         curChatIndex:null
     }),
